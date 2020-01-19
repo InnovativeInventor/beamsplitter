@@ -46,7 +46,9 @@
     FORCE_INLINE void round( const uint32_t * m64, const uint8_t * m8, int len, 
             uint32_t * state64, uint8_t * state8 )
     {
-      for( int index = 0; index < len; index++ ) {
+      int Len = len >> 2;
+
+      for( int index = 0; index < Len; index++ ) {
         state64[index&7] ^= m64[index];
         if ( index&3 == 0 && index != 0 ) {
           mix( state64, state8, S[0], S[1] );
@@ -76,8 +78,8 @@
       seed64Arr[1] = seed;
 
       round( seed64Arr, seed8Arr, 8, state, state8 );
-      round( key64Arr, key8Arr, 8, state, state8 );
-      round( seed64Arr, seed8Arr, len, state, state8 );
+      round( key64Arr, key8Arr, len, state, state8 );
+      round( seed64Arr, seed8Arr, 8, state, state8 );
       round( key64Arr, key8Arr, len, state, state8 );
 
       const uint8_t output[16] = {0};
