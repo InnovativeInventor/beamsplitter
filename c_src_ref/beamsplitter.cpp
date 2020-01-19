@@ -16,7 +16,8 @@
   // mix function : mix 128 bits of state to 128 bits of state 
 
     FORCE_INLINE void mix ( uint64_t * s64, uint8_t * s8, 
-             const uint8_t box1[8][256], const uint8_t box2[8][256] )
+              uint64_t * r64, uint8_t * r8, 
+              const uint8_t box1[8][256], const uint8_t box2[8][256] )
     {
       uint8_t x[16] = {0};
       uint64_t * t = (uint64_t *)x;
@@ -31,13 +32,13 @@
       }
 
       for( int i = 8; i < 16; i++ ) {
-        q[i] = s8[i] + q[i-8] + counter; 
+        q[i] = r8[i] + q[i-8] + counter; 
         q[i] = box2[i-8][q[i]];
         counter += box1[i-8][q[i]];
       }
 
-      s64[0] = t[1];
-      s64[1] = t[0];
+      s64[0] = t[0];
+      r64[0] = t[1];
     }
 
   //---------
@@ -48,24 +49,32 @@
     {
       int index = 0;
 
+      uint64_t * A = state64+0;
+      uint64_t * B = state64+1;
+      uint64_t * C = state64+2;
+      uint64_t * D = state64+3;
+
+      uint8_t * w = state8+0;
+      uint8_t * x = state8+8;
+      uint8_t * y = state8+16;
+      uint8_t * z = state8+24;
+
       for( int Len = len >> 3; index < Len; index++ ) {
-        state64[index&1] += (m64[index] + index);
-        if ( index & 1 == 0 & index > 0 ) {
-          mix( state64, state8, S[0], S[1] );
-          mix( state64, state8, S[2], S[3] );
+        state64[index&3] += (m64[index] + index);
+        if ( index & 3 == 0 & index > 0 ) {
+          mix( A, w, B, x, S[0], S[1] );
+          mix( C, y, D, z, S[2], S[3] );
+          mix( B, x, C, y, S[0], S[1] );
         }
       }
 
       for( index <<= 3; index < len; index++ ) {
-        state8[index&15] += (m8[index] + index);
-        if ( index &15 == 0 & index > 0 ) {
-          mix( state64, state8, S[0], S[1] );
-          mix( state64, state8, S[2], S[3] );
-        }
+        state8[index&31] += (m8[index] + index);
       }
 
-      mix( state64, state8, S[0], S[1] );
-      mix( state64, state8, S[2], S[3] );
+      mix( A, w, B, x, S[2], S[3] );
+      mix( C, y, D, z, S[0], S[1] );
+      mix( B, x, C, y, S[2], S[3] );
     }
 
   //---------
@@ -93,16 +102,16 @@
       round( key64Arr, key8Arr, len, state, state8 );
 
       const uint8_t output[16] = {0};
-      uint32_t *h = (uint32_t *)output;
+      uint64_t *h = (uint64_t *)output;
 
       // The new combination step
-      h[0] = state32[0];
-      h[1] = state32[1];
-      h[2] = state32[2];
-      h[3] = state32[3];
+      h[0] = state32[0] + state32[4];
+      h[1] = state32[1] + state32[5];
+      h[2] = state32[2] + state32[6];
+      h[3] = state32[3] + state32[7];
 
-      h[0] = h[0] + h[3];
-      h[1] = h[1] + h[2];
+      h[0] += h[3];
+      h[1] += h[2];
 
       ((uint32_t *)out)[0] = h[0];
       ((uint32_t *)out)[1] = h[1];
