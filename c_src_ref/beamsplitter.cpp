@@ -46,11 +46,18 @@
     FORCE_INLINE void round( const uint32_t * m64, const uint8_t * m8, int len, 
             uint32_t * state64, uint8_t * state8 )
     {
-      int Len = len >> 2;
+      int index = 0;
 
-      for( int index = 0; index < Len; index++ ) {
-        state64[index&7] ^= m64[index];
+      for( int Len = len >> 2; index < Len; index++ ) {
+        state64[index&3] ^= (m64[index] + index);
         if ( index&3 == 0 && index != 0 ) {
+          mix( state64, state8, S[0], S[1] );
+        }
+      }
+
+      for( index <<= 2; index < len; index++ ) {
+        state8[index&15] ^= (m8[index] + index);
+        if ( index&7 == 0 && index != 0 ) {
           mix( state64, state8, S[0], S[1] );
         }
       }
@@ -69,7 +76,7 @@
       uint32_t *seed64Arr = (uint32_t *)seedbuf;
       const uint8_t *seed8Arr = (uint8_t *)seedbuf;
 
-      const uint8_t buf[32] = {0};
+      const uint8_t buf[16] = {0};
       uint8_t *state8 = (uint8_t *)buf;
       uint32_t *state32 = (uint32_t *)buf;
       uint32_t *state = (uint32_t *)buf;
@@ -79,6 +86,7 @@
 
       round( seed64Arr, seed8Arr, 8, state, state8 );
       round( key64Arr, key8Arr, len, state, state8 );
+
       round( seed64Arr, seed8Arr, 8, state, state8 );
       round( key64Arr, key8Arr, len, state, state8 );
 
@@ -90,10 +98,6 @@
       h[1] = state32[1];
       h[2] = state32[2];
       h[3] = state32[3];
-      h[0] += state32[4];
-      h[1] += state32[5];
-      h[2] += state32[6];
-      h[3] += state32[7];
 
       h[0] = h[0] + h[3];
       h[1] = h[1] + h[2];
