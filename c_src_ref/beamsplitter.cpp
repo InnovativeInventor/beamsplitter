@@ -15,11 +15,11 @@
   //---------
   // mix function : mix 128 bits of state to 128 bits of state 
 
-    FORCE_INLINE void mix ( uint32_t * s64, uint8_t * s8, 
+    FORCE_INLINE void mix ( uint64_t * s64, uint8_t * s8, 
              const uint8_t box1[8][256], const uint8_t box2[8][256] )
     {
       uint8_t x[16] = {0};
-      uint32_t * t = (uint32_t *)x;
+      uint64_t * t = (uint64_t *)x;
       uint8_t * q = (uint8_t *)x;
 
       int counter = 0;
@@ -36,34 +36,36 @@
         counter += box1[i-8][q[i]];
       }
 
-      s64[0] = t[2];
-      s64[1] = t[3];
-      s64[2] = t[0];
-      s64[3] = t[1];
+      s64[0] = t[1];
+      s64[1] = t[0];
     }
 
   //---------
   // Hash round function 
 
-    FORCE_INLINE void round( const uint32_t * m64, const uint8_t * m8, int len, 
-            uint32_t * state64, uint8_t * state8 )
+    FORCE_INLINE void round( const uint64_t * m64, const uint8_t * m8, int len, 
+            uint64_t * state64, uint8_t * state8 )
     {
       int index = 0;
 
-      for( int Len = len >> 2; index < Len; index++ ) {
-        state64[index&3] += (m64[index] + index);
-        if ( index&3 == 0 && index != 0 ) {
-          mix( state64, state8, S[1], S[3] );
+      for( int Len = len >> 3; index < Len; index++ ) {
+        state64[index&1] += (m64[index] + index);
+        if ( index & 1 == 0 & index > 0 ) {
+          mix( state64, state8, S[0], S[1] );
+          mix( state64, state8, S[2], S[3] );
         }
       }
 
-      for( index <<= 2; index < len; index++ ) {
+      for( index <<= 3; index < len; index++ ) {
         state8[index&15] += (m8[index] + index);
-        if ( index&15 == 0 && index != 0 ) {
+        if ( index &15 == 0 & index > 0 ) {
           mix( state64, state8, S[0], S[1] );
+          mix( state64, state8, S[2], S[3] );
         }
       }
-      mix( state64, state8, S[2], S[0] );
+
+      mix( state64, state8, S[0], S[1] );
+      mix( state64, state8, S[2], S[3] );
     }
 
   //---------
@@ -72,25 +74,22 @@
     void beamsplitter_64 ( const void * key, int len, uint32_t seed, void * out )
     {
       const uint8_t *key8Arr = (uint8_t *)key;
-      const uint32_t *key64Arr = (uint32_t *)key;
+      const uint64_t *key64Arr = (uint64_t *)key;
 
       const uint8_t seedbuf[8] = {0};
-      uint32_t *seed64Arr = (uint32_t *)seedbuf;
+      uint32_t *seed32Arr = (uint32_t *)seedbuf;
+      uint64_t *seed64Arr = (uint64_t *)seedbuf;
       const uint8_t *seed8Arr = (uint8_t *)seedbuf;
 
       const uint8_t buf[32] = {0};
       uint8_t *state8 = (uint8_t *)buf;
       uint32_t *state32 = (uint32_t *)buf;
-      uint32_t *state = (uint32_t *)buf;
+      uint64_t *state = (uint64_t *)buf;
 
-      seed64Arr[0] = seed;
-      seed64Arr[1] = seed;
+      seed32Arr[0] = seed;
+      seed32Arr[1] = seed;
 
       round( seed64Arr, seed8Arr, 8, state, state8 );
-      round( key64Arr, key8Arr, len, state, state8 );
-      round( key64Arr, key8Arr, len, state, state8 );
-      round( key64Arr, key8Arr, len, state, state8 );
-      round( key64Arr, key8Arr, len, state, state8 );
       round( key64Arr, key8Arr, len, state, state8 );
 
       const uint8_t output[16] = {0};

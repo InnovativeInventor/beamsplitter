@@ -166,3 +166,8 @@ I went to random.org and generated 32 sets of 256 no-repeat numbers between 0 an
 # are the s-boxes perfect?
 
 I don't know. 
+
+# dev strategy
+
+- the mixing function is relatively weak. let's trying expanding the state, rathern than mixing a shorter state more.
+- then output a sum over larger state, should work.
