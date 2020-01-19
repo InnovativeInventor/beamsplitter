@@ -14,8 +14,7 @@ Passes Dieharder.
 
 ## work in progress
 
-1. c source to run SMHasher tests
-2. browser compatible build
+1. browser compatible build
 
 ## Test vectors
 
