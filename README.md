@@ -14,7 +14,8 @@ Passes Dieharder.
 
 ## work in progress
 
-1. browser compatible build
+1. c code for smhasher
+2. browser compatible build
 
 ## Test vectors
 

@@ -23,15 +23,17 @@
       uint8_t * q = (uint8_t *)x;
 
       int counter = 0;
+
       for( int i = 0; i < 8; i++ ) {
         q[i] = s8[i] + counter; 
         q[i] = box1[i][q[i]];
-        counter += q[i];
+        counter += box2[i][q[i]];
       }
 
       for( int i = 8; i < 16; i++ ) {
-        q[i] = s8[i] + q[i-8];  
+        q[i] = s8[i] + q[i-8] + counter; 
         q[i] = box2[i-8][q[i]];
+        counter += box1[i-8][q[i]];
       }
 
       s64[0] = t[2];
@@ -49,19 +51,19 @@
       int index = 0;
 
       for( int Len = len >> 2; index < Len; index++ ) {
-        state64[index&3] ^= (m64[index] + index);
+        state64[index&3] += (m64[index] + index);
         if ( index&3 == 0 && index != 0 ) {
-          mix( state64, state8, S[0], S[1] );
+          mix( state64, state8, S[1], S[3] );
         }
       }
 
       for( index <<= 2; index < len; index++ ) {
-        state8[index&15] ^= (m8[index] + index);
-        if ( index&7 == 0 && index != 0 ) {
+        state8[index&15] += (m8[index] + index);
+        if ( index&15 == 0 && index != 0 ) {
           mix( state64, state8, S[0], S[1] );
         }
       }
-      mix( state64, state8, S[2], S[3] );
+      mix( state64, state8, S[2], S[0] );
     }
 
   //---------
@@ -76,7 +78,7 @@
       uint32_t *seed64Arr = (uint32_t *)seedbuf;
       const uint8_t *seed8Arr = (uint8_t *)seedbuf;
 
-      const uint8_t buf[16] = {0};
+      const uint8_t buf[32] = {0};
       uint8_t *state8 = (uint8_t *)buf;
       uint32_t *state32 = (uint32_t *)buf;
       uint32_t *state = (uint32_t *)buf;
@@ -86,8 +88,9 @@
 
       round( seed64Arr, seed8Arr, 8, state, state8 );
       round( key64Arr, key8Arr, len, state, state8 );
-
-      round( seed64Arr, seed8Arr, 8, state, state8 );
+      round( key64Arr, key8Arr, len, state, state8 );
+      round( key64Arr, key8Arr, len, state, state8 );
+      round( key64Arr, key8Arr, len, state, state8 );
       round( key64Arr, key8Arr, len, state, state8 );
 
       const uint8_t output[16] = {0};
