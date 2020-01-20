@@ -32,11 +32,9 @@ typedef uint8_t u8;
   //---------
   // mix2 function : 8 bytes -> 8 bytes
 
-    FORCE_INLINE void mix2 ( u8 *p, u8 *q, u8 *r, u8 *s, u8 *t, u8 *u, u8 *v, u8 *w, u8 k[8]  ) 
+    FORCE_INLINE void mix2 ( u8 *p, u8 *q, u8 *r, u8 *s, u8 *t, u8 *u, u8 *v, u8 *w, u8 k[8], int offset ) 
     {
-      int offset; 
-
-      offset = mix(p, k[0], 0);
+      offset = mix(p, k[0], offset);
       offset = mix(q, k[1], offset);
       offset = mix(r, k[2], offset);
       offset = mix(s, k[3], offset);
@@ -49,7 +47,7 @@ typedef uint8_t u8;
   //---------
   // mix3 function : 64 bytes -> 64 bytes
 
-    FORCE_INLINE uint64_t mix3 ( u8 s[64], u8 *k ) 
+    FORCE_INLINE uint64_t mix3 ( u8 s[64], u8 *k, int index ) 
     {
       int m = 63;
       u8 z[8] = {0};
@@ -64,25 +62,25 @@ typedef uint8_t u8;
       u8 *g = z+6;
       u8 *h = z+7;
 
-      mix2(s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m), k+0 );
-      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+0 );
-      mix2(s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m), k+8 );
-      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+8 );
+      mix2(s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m), k+0, index );
+      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+0, index );
+      mix2(s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m),s+(*a&m), k+8, index + 8);
+      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+8, index + 8);
 
-      mix2(s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m), k+16 );
-      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+16 );
-      mix2(s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m), k+24 );
-      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+24 );
+      mix2(s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m),s+(*a&m),s+(*b&m), k+16, index + 16);
+      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+16, index + 16);
+      mix2(s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m),s+(*a&m),s+(*b&m),s+(*c&m), k+24, index + 24);
+      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+24, index + 24);
 
-      mix2(s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m), k+32 );
-      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+32 );
-      mix2(s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m), k+40 );
-      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+40 );
+      mix2(s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m),s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m), k+32, index + 32);
+      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+32, index + 32);
+      mix2(s+(*f&m),s+(*g&m),s+(*h&m),s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m), k+40, index + 40);
+      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+40, index + 40);
 
-      mix2(s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m), k+48 );
-      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+48 );
-      mix2(s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m),s+(*h&m), k+56 );
-      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+56 );
+      mix2(s+(*g&m),s+(*h&m),s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m), k+48, index + 48);
+      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+48, index + 48);
+      mix2(s+(*h&m),s+(*a&m),s+(*b&m),s+(*c&m),s+(*d&m),s+(*e&m),s+(*f&m),s+(*g&m), k+56, index + 56);
+      mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, k+56, index + 56);
 
       return *w;
     }
@@ -96,13 +94,13 @@ typedef uint8_t u8;
       int index = 0;
 
       for( int Len = len >> 6; index < Len; index++ ) {
-        w ^= mix3( state8, (u8 *)m64+index );
+        w ^= mix3( state8, (u8 *)m64+index, index<<6 );
       }
 
       index <<= 6;
 
       if ( len >= 64 ) {
-        w ^= mix3( state8, (u8 *)m8+len-64 ); 
+        w ^= mix3( state8, (u8 *)m8+len-64, index ); 
         index = len;
       } else if ( len >= 8 ) {
         int i = 0;
@@ -121,8 +119,8 @@ typedef uint8_t u8;
 
         while( i + 8 < len ) {
           mix2(state8+(*a&m),state8+(*b&m),state8+(*c&m),state8+(*d&m),
-            state8+(*e&m),state8+(*f&m),state8+(*g&m),state8+(*h&m), (u8 *)m8+i );
-          mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, (u8 *)m8+i );
+            state8+(*e&m),state8+(*f&m),state8+(*g&m),state8+(*h&m), (u8 *)m8+i, i);
+          mix2(z+0,z+1,z+2,z+3,z+4,z+5,z+6,z+7, (u8 *)m8+i, i);
           i += 8;
         }
 
@@ -130,16 +128,16 @@ typedef uint8_t u8;
         index = i;
       }
 
-      w ^= mix3( state8, state8 );
+      w ^= mix3( state8, state8, index );
 
       if ( index < len ) {
-        int offset = 0;
+        int offset = index;
         for( index; index < len; index++ ) {
           offset = mix(state8+(index&63), m8[index], offset);
         }
       }
 
-      w ^= mix3( state8, state8 );
+      w ^= mix3( state8, state8, index );
 
       return w;
     }
@@ -167,11 +165,17 @@ typedef uint8_t u8;
       seed32Arr[0] = seed;
       seed32Arr[1] = seed;
 
-      w = round( seed64Arr, seed8Arr, 8, state, state8, w);
-      w = round( key64Arr, key8Arr, len, state, state8, w);
+      w += round( seed64Arr, seed8Arr, 8, state, state8, w);
+      w += round( key64Arr, key8Arr, len, state, state8, w);
+      w += round( state, state8, 64, state, state8, w);
+      w += round( key64Arr, key8Arr, len, state, state8, w);
+      w += round( state, state8, 64, state, state8, w);
+      w += round( key64Arr, key8Arr, len, state, state8, w);
+      w += round( state, state8, 64, state, state8, w);
+      w += round( state, state8, 64, state, state8, w);
 
       //printf("s[0..3] = %#018" PRIx64 "  %#018" PRIx64 "  %#018" PRIx64 "  %#018" PRIx64 "\n", state[0], state[1], state[2], state[3]); 
-      //printf("s[4..7] = %#018" PRIx64 "  %#018" PRIx64 "  %#018" PRIx64 "  %#018" PRIx64 "\n", state[0], state[1], state[2], state[3]); 
+      //printf("s[4..7] = %#018" PRIx64 "  %#018" PRIx64 "  %#018" PRIx64 "  %#018" PRIx64 "\n", state[4], state[5], state[6], state[7]); 
       //printf("w = %#018" PRIx64 "\n\n", w);
 
       ((uint64_t *)out)[0] = w;
