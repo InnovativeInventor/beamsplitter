@@ -32,7 +32,7 @@
       }
 
       for( int i = 8; i < 16; i++ ) {
-        q[i] = r8[i] + q[i-8] + counter; 
+        q[i] = r8[i-8] + q[i-8] + counter; 
         q[i] = box2[i-8][q[i]];
         counter += box1[i-8][q[i]];
       }
