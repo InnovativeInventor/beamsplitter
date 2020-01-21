@@ -2,6 +2,8 @@
 
 A very simple S-box only hash.
 
+**Please consider this primitive insecure as it does not pass SMHasher**
+
 # Get
 
 ```console
