@@ -18,7 +18,7 @@
 
     FORCE_INLINE void mix ( uint64_t * s64, uint8_t * s8, 
               uint64_t * r64, uint8_t * r8, 
-               const u8 box1[8][256], const u8 box2[8][256] )
+              const uint8_t box1[8][256], const uint8_t box2[8][256] )
     {
       uint8_t x[16] = {0};
       uint64_t * t = (uint64_t *)x;
@@ -34,8 +34,8 @@
 
       for( int i = 8; i < 16; i++ ) {
         q[i] = r8[i-8] + q[i-8] + counter; 
-        q[i] = box2[(i-8)][q[i]];
-        counter += box1[(i-8)][q[i]];
+        q[i] = box2[i-8][q[i]];
+        counter += box1[i-8][q[i]];
       }
 
       s64[0] = t[0];
@@ -66,9 +66,9 @@
       for( int Len = len >> 3; index < Len; index++ ) {
         state64[index&3] += (m64[index] + index);
         if ( index & 3 == 0 && index > 0 ) {
-          mix( A, w, B, x, S[0], S[1]);
-          mix( C, y, D, z, S[2], S[3]);
-          mix( B, x, C, y, S[3], S[0]);
+          mix( A, w, B, x, S[0], S[1] );
+          mix( C, y, D, z, S[2], S[3] );
+          mix( B, x, C, y, S[3], S[0] );
         }
       }
 
@@ -76,9 +76,13 @@
         state8[index&31] += (m8[index] + index);
       }
 
-      mix( A, w, B, x, S[0], S[1]);
-      mix( C, y, D, z, S[2], S[3]);
-      mix( B, x, C, y, S[3], S[0]);
+      mix( A, w, B, x, S[2], S[3] );
+      mix( C, y, D, z, S[0], S[1] );
+      mix( B, x, C, y, S[3], S[0] );
+
+      mix( A, w, B, x, S[2], S[3] );
+      mix( C, y, D, z, S[0], S[1] );
+      mix( B, x, C, y, S[3], S[0] );
     }
 
   //---------
