@@ -848,7 +848,13 @@ Verification value is 0x00000001 - Testing took 9.618923 seconds
 [[[ MomentChi2 Tests ]]]
 
 Running 1st unseeded MomentChi2 for the low 32bits/step 3 ... 38918524.673552 - 410503.720138
-Running 2nd   seeded MomentChi2 for the low 32bits/step 3 ... --- Testing beamsplitter_64 "hash composed of only s-boxes" GOOD
+Running 2nd   seeded MomentChi2 for the low 32bits/step 3 ... 38919329.350847 - 410440.571121
+KeySeedMomentChi2:	0.788733	PASS
+
+
+Input vcode 0x00000001, Output vcode 0x00000001, Result vcode 0x00000001
+Verification value is 0x00000001 - Testing took 2019.116858 seconds
+--- Testing beamsplitter_64 "hash composed of only s-boxes" GOOD
 
 [[[ Keyset 'Permutation' Tests ]]]
 

@@ -20,6 +20,7 @@
     FORCE_INLINE u32 mix ( uint64_t * s64, uint8_t * s8, 
               uint64_t * r64, uint8_t * r8, 
               const uint8_t box1[8][256], const uint8_t box2[8][256],
+              u8 * X, u8 * Y,
               u32 counter )
     {
       uint8_t x[16] = {0};
@@ -29,13 +30,13 @@
       for( int i = 0; i < 8; i++ ) {
         q[i] = s8[i] + counter; 
         q[i] = box1[i][q[i]];
-        counter += box2[i][q[i]] + q[(i+8-1)&7];
+        counter += box2[i][q[i]] + Y[(i+8-1)&7];
       }
 
       for( int i = 8; i < 16; i++ ) {
         q[i] = r8[i-8] + q[i-8] + counter; 
         q[i] = box2[i-8][q[i]];
-        counter += box1[i-8][q[i]] + q[i-1];
+        counter += box1[i-8][q[i]] + X[(i-1)&7];
       }
 
       s64[0] = t[0];
@@ -71,9 +72,9 @@
       for( int Len = len >> 3; index < Len; index++ ) {
         state64[index&3] += (m64[index] + index);
         if ( index & 3 == 0 && index > 0 ) {
-          counter = mix( A, w, B, x, S[2], S[3], counter );
-          counter = mix( C, y, D, z, S[0], S[1], counter );
-          counter = mix( B, x, C, y, S[3], S[0], counter );
+          counter = mix( A, w, B, x, S[2], S[3], y, z, counter );
+          counter = mix( C, y, D, z, S[0], S[1], w, x, counter );
+          counter = mix( B, x, C, y, S[3], S[0], z, w, counter );
         }
       }
 
@@ -93,16 +94,16 @@
       memcpy(L, J, P);
       memcpy(L+P, A, Q); 
 
-      counter = mix( G, (u8 *)G, H, (u8 *)H, S[2], S[3], counter );
-      counter = mix( I, (u8 *)I, K, (u8 *)K, S[0], S[1], counter );
-      counter = mix( H, (u8 *)H, I, (u8 *)I, S[3], S[0], counter );
+      counter = mix( G, (u8 *)G, H, (u8 *)H, S[2], S[3], (u8 *) A, (u8 *) D, counter );
+      counter = mix( I, (u8 *)I, K, (u8 *)K, S[0], S[1], (u8 *) B, (u8 *) A, counter );
+      counter = mix( H, (u8 *)H, I, (u8 *)I, S[3], S[0], (u8 *) C, (u8 *) B, counter );
 
       memcpy(J, L, P);
       memcpy(A, L+P, Q);
 
-      counter = mix( A, w, B, x, S[2], S[3], counter );
-      counter = mix( C, y, D, z, S[0], S[1], counter );
-      counter = mix( B, x, C, y, S[3], S[0], counter );
+      counter = mix( A, w, B, x, S[2], S[3], (u8 *)G, (u8 *)K, counter );
+      counter = mix( C, y, D, z, S[0], S[1], (u8 *)H, (u8 *)G, counter );
+      counter = mix( B, x, C, y, S[3], S[0], (u8 *)I, (u8 *)H, counter );
       /**
       mix( A, w, B, x, S[2], S[3] );
       mix( C, y, D, z, S[0], S[1] );
@@ -131,8 +132,8 @@
       seed32Arr[0] = seed;
       seed32Arr[1] = seed + len;
 
-      round( seed64Arr, seed8Arr, 8, state, state8 );
       round( key64Arr, key8Arr, len, state, state8 );
+      round( seed64Arr, seed8Arr, 8, state, state8 );
 
       const uint8_t output[16] = {0};
       uint64_t *h = (uint64_t *)output;
