@@ -17,26 +17,25 @@
   //---------
   // mix function : mix 128 bits of state to 128 bits of state 
 
-    FORCE_INLINE void mix ( uint64_t * s64, uint8_t * s8, 
+    FORCE_INLINE u32 mix ( uint64_t * s64, uint8_t * s8, 
               uint64_t * r64, uint8_t * r8, 
-              const uint8_t box1[8][256], const uint8_t box2[8][256] )
+              const uint8_t box1[8][256], const uint8_t box2[8][256],
+              u32 counter )
     {
       uint8_t x[16] = {0};
       uint64_t * t = (uint64_t *)x;
       uint8_t * q = (uint8_t *)x;
 
-      int counter = 0;
-
       for( int i = 0; i < 8; i++ ) {
         q[i] = s8[i] + counter; 
         q[i] = box1[i][q[i]];
-        counter += box2[i][q[i]];
+        counter += box2[i][q[i]] + q[(i+8-1)&7];
       }
 
       for( int i = 8; i < 16; i++ ) {
         q[i] = r8[i-8] + q[i-8] + counter; 
         q[i] = box2[i-8][q[i]];
-        counter += box1[i-8][q[i]];
+        counter += box1[i-8][q[i]] + q[i-1];
       }
 
       s64[0] = t[0];
@@ -44,6 +43,8 @@
 
       //printf("t   = %#018" PRIx64 "  %#018" PRIx64 "\n\n", t[0], t[1]);
       //printf("r,s = %#018" PRIx64 "  %#018" PRIx64 "\n\n", r64[0], s64[0]);
+
+      return counter;
     }
 
   //---------
@@ -55,6 +56,7 @@
       int Q = 6;
       int P = 8-Q;
       int index = 0;
+      u32 counter = len + Q + 1;
 
       uint64_t * A = state64+0;
       uint64_t * B = state64+1;
@@ -69,9 +71,9 @@
       for( int Len = len >> 3; index < Len; index++ ) {
         state64[index&3] += (m64[index] + index);
         if ( index & 3 == 0 && index > 0 ) {
-          mix( A, w, B, x, S[2], S[3] );
-          mix( C, y, D, z, S[0], S[1] );
-          mix( B, x, C, y, S[3], S[0] );
+          counter = mix( A, w, B, x, S[2], S[3], counter );
+          counter = mix( C, y, D, z, S[0], S[1], counter );
+          counter = mix( B, x, C, y, S[3], S[0], counter );
         }
       }
 
@@ -91,16 +93,16 @@
       memcpy(L, J, P);
       memcpy(L+P, A, Q); 
 
-      mix( G, (u8 *)G, H, (u8 *)H, S[2], S[3] );
-      mix( I, (u8 *)I, K, (u8 *)K, S[0], S[1] );
-      mix( H, (u8 *)H, I, (u8 *)I, S[3], S[0] );
+      counter = mix( G, (u8 *)G, H, (u8 *)H, S[2], S[3], counter );
+      counter = mix( I, (u8 *)I, K, (u8 *)K, S[0], S[1], counter );
+      counter = mix( H, (u8 *)H, I, (u8 *)I, S[3], S[0], counter );
 
       memcpy(J, L, P);
       memcpy(A, L+P, Q);
 
-      mix( A, w, B, x, S[2], S[3] );
-      mix( C, y, D, z, S[0], S[1] );
-      mix( B, x, C, y, S[3], S[0] );
+      counter = mix( A, w, B, x, S[2], S[3], counter );
+      counter = mix( C, y, D, z, S[0], S[1], counter );
+      counter = mix( B, x, C, y, S[3], S[0], counter );
       /**
       mix( A, w, B, x, S[2], S[3] );
       mix( C, y, D, z, S[0], S[1] );
