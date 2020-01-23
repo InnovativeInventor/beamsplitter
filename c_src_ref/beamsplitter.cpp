@@ -52,7 +52,7 @@
     FORCE_INLINE void round( const uint64_t * m64, const uint8_t * m8, int len, 
             uint64_t * state64, uint8_t * state8 )
     {
-      int Q = 0;
+      int Q = 6;
       int P = 8-Q;
       int index = 0;
 
@@ -66,20 +66,11 @@
       uint8_t * y = state8+16;
       uint8_t * z = state8+24;
 
-      u64 * G = (u64 *) (state8+Q);
-      u64 * H = (u64 *) (state8+Q+8);
-      u64 * I = (u64 *) (state8+Q+16);
-      u64 * J = (u64 *) (state8+Q+24);
-
-      // slack variable to enable wrap-around
-      u64 K[1] = {0};
-      u8 *L = (u8 *)K;
-
       for( int Len = len >> 3; index < Len; index++ ) {
         state64[index&3] += (m64[index] + index);
         if ( index & 3 == 0 && index > 0 ) {
-          mix( A, w, B, x, S[0], S[1] );
-          mix( C, y, D, z, S[2], S[3] );
+          mix( A, w, B, x, S[2], S[3] );
+          mix( C, y, D, z, S[0], S[1] );
           mix( B, x, C, y, S[3], S[0] );
         }
       }
@@ -88,9 +79,14 @@
         state8[index&31] += (m8[index] + index);
       }
 
-      mix( A, w, B, x, S[2], S[3] );
-      mix( C, y, D, z, S[0], S[1] );
-      mix( B, x, C, y, S[3], S[0] );
+      u64 * G = (u64 *) (state8+Q);
+      u64 * H = (u64 *) (state8+Q+8);
+      u64 * I = (u64 *) (state8+Q+16);
+      u64 * J = (u64 *) (state8+Q+24);
+
+      // slack variable to enable wrap-around
+      u64 K[1] = {0};
+      u8 *L = (u8 *)K;
 
       memcpy(L, J, P);
       memcpy(L+P, A, Q); 
@@ -102,6 +98,9 @@
       memcpy(J, L, P);
       memcpy(A, L+P, Q);
 
+      mix( A, w, B, x, S[2], S[3] );
+      mix( C, y, D, z, S[0], S[1] );
+      mix( B, x, C, y, S[3], S[0] );
       /**
       mix( A, w, B, x, S[2], S[3] );
       mix( C, y, D, z, S[0], S[1] );
@@ -128,7 +127,7 @@
       uint64_t *state = (uint64_t *)buf;
 
       seed32Arr[0] = seed;
-      seed32Arr[1] = seed;
+      seed32Arr[1] = seed + len;
 
       round( seed64Arr, seed8Arr, 8, state, state8 );
       round( key64Arr, key8Arr, len, state, state8 );
