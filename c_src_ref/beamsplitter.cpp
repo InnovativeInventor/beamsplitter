@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstring>
 #include "beamsplitter.h"
 
 #if defined(_MSC_VER)
@@ -51,6 +52,8 @@
     FORCE_INLINE void round( const uint64_t * m64, const uint8_t * m8, int len, 
             uint64_t * state64, uint8_t * state8 )
     {
+      int Q = 0;
+      int P = 8-Q;
       int index = 0;
 
       uint64_t * A = state64+0;
@@ -62,6 +65,15 @@
       uint8_t * x = state8+8;
       uint8_t * y = state8+16;
       uint8_t * z = state8+24;
+
+      u64 * G = (u64 *) (state8+Q);
+      u64 * H = (u64 *) (state8+Q+8);
+      u64 * I = (u64 *) (state8+Q+16);
+      u64 * J = (u64 *) (state8+Q+24);
+
+      // slack variable to enable wrap-around
+      u64 K[1] = {0};
+      u8 *L = (u8 *)K;
 
       for( int Len = len >> 3; index < Len; index++ ) {
         state64[index&3] += (m64[index] + index);
@@ -80,9 +92,21 @@
       mix( C, y, D, z, S[0], S[1] );
       mix( B, x, C, y, S[3], S[0] );
 
+      memcpy(L, J, P);
+      memcpy(L+P, A, Q); 
+
+      mix( G, (u8 *)G, H, (u8 *)H, S[2], S[3] );
+      mix( I, (u8 *)I, K, (u8 *)K, S[0], S[1] );
+      mix( H, (u8 *)H, I, (u8 *)I, S[3], S[0] );
+
+      memcpy(J, L, P);
+      memcpy(A, L+P, Q);
+
+      /**
       mix( A, w, B, x, S[2], S[3] );
       mix( C, y, D, z, S[0], S[1] );
       mix( B, x, C, y, S[3], S[0] );
+      **/
     }
 
   //---------
